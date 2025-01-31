@@ -1,15 +1,20 @@
-import { Text, View } from "react-native";
+import { Image, Text } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { Colors } from '@/constants/Colors';
+import CurvedContainer from "@/components/CurvedContainer";
 
 export default function Index() {
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
-    </View>
+    <SafeAreaProvider>
+      <GestureHandlerRootView>
+        <SafeAreaView style={{ backgroundColor: Colors.main.background }} className="h-full">
+            <CurvedContainer>
+              
+            </CurvedContainer>
+        </SafeAreaView>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
+    
   );
 }
