@@ -13,8 +13,8 @@ type Props = PropsWithChildren
 const CurvedContainer: FunctionComponent<Props> = ({ children }) => {
   const { width, height } = useSafeAreaFrame()
   const insets = useSafeAreaInsets()
-  const containerHeight = height * 0.75
-  const svgHeight = containerHeight + insets.top
+  const containerHeight = height * 0.75 - insets.top
+  const svgHeight = height * 0.75 + insets.top
   const svgCurveHeight = svgHeight - 100
 
   return (

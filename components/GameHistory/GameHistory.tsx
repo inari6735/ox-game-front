@@ -14,12 +14,18 @@ const GameHistory: FunctionComponent<Props> = ({ style }) => {
           width: "100%",
           display: "flex",
           alignItems: "center",
-          maxHeight: 260,
+          flex: 1,
+          marginBottom: 50,
         },
         style,
       ]}
     >
-      <ScrollView contentContainerStyle={{ width: "100%", paddingBottom: 20 }}>
+      <ScrollView
+        contentContainerStyle={{
+          width: "100%",
+          paddingBottom: 30,
+        }}
+      >
         <HistoryItem style={{ marginBottom: 5 }} />
         <HistoryItem style={{ marginBottom: 5 }} />
         <HistoryItem style={{ marginBottom: 5 }} />
