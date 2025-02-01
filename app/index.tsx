@@ -7,6 +7,7 @@ import UserProfile from "@/components/UserProfile"
 import GameHistory from "@/components/GameHistory/GameHistory"
 import MainButton from "@/components/MainButton"
 import { useSafeAreaFrame } from "react-native-safe-area-context"
+import OptionButton from "@/components/OptionButton"
 
 export default function Index() {
   const { height } = useSafeAreaFrame()
@@ -30,11 +31,25 @@ export default function Index() {
             style={{
               height: height * 0.2,
               display: "flex",
+              flexDirection: "row",
               justifyContent: "center",
               alignItems: "center",
             }}
           >
-            <MainButton text="PLAY" />
+            <OptionButton
+              icon="cart"
+              iconColor={Colors.main.text}
+              iconSize={24}
+            />
+            <MainButton
+              style={{ marginLeft: 30, marginRight: 30 }}
+              text="PLAY"
+            />
+            <OptionButton
+              icon="settings"
+              iconColor={Colors.main.text}
+              iconSize={24}
+            />
           </View>
         </SafeAreaView>
       </GestureHandlerRootView>
