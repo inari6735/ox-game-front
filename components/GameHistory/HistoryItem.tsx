@@ -1,7 +1,7 @@
 import { FunctionComponent } from "react"
 import { View, ViewProps } from "react-native"
 import ThemedText from "@/components/ThemedText"
-import ScoreItem from "@/components/ScoreItem"
+import ScoreItem from "@/components/GameHistory/ScoreItem"
 import { Colors } from "@/constants/Colors"
 
 type Props = ViewProps

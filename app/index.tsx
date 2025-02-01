@@ -1,9 +1,10 @@
-import { Image, Text } from "react-native"
+import { Image, View } from "react-native"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
 import { Colors } from "@/constants/Colors"
 import CurvedContainer from "@/components/CurvedContainer"
 import UserProfile from "@/components/UserProfile"
+import GameHistory from "@/components/GameHistory/GameHistory"
 
 export default function Index() {
   return (
@@ -19,6 +20,7 @@ export default function Index() {
               className="w-[155px] h-[85px] mt-7"
             />
             <UserProfile />
+            <GameHistory style={{ marginTop: 20 }} />
           </CurvedContainer>
         </SafeAreaView>
       </GestureHandlerRootView>
