@@ -28,8 +28,13 @@ const CurvedContainer: FunctionComponent<Props> = ({ children }) => {
         />
       </Svg>
       <View
-        style={{ width: "100%", height: containerHeight, alignItems: "center" }}
-        className="w-full h-[75vh] items-center justify-center"
+        style={{
+          width: "100%",
+          height: containerHeight,
+          flex: 1,
+          maxHeight: containerHeight,
+          alignItems: "center",
+        }}
       >
         {children}
       </View>
