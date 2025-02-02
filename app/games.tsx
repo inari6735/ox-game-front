@@ -7,7 +7,11 @@ import {
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { Colors } from "@/constants/Colors"
 import Svg, { Path } from "react-native-svg"
-import { View, Image } from "react-native"
+import { View, Image, Pressable } from "react-native"
+import MainButton from "@/components/MainButton"
+import { Link } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import ThemedText from "@/components/ThemedText"
 
 export default function Games() {
   const { width } = useSafeAreaFrame()
@@ -37,12 +41,55 @@ export default function Games() {
               height: topContainerHeight,
               justifyContent: "center",
               alignItems: "center",
+              marginBottom: 50,
             }}
           >
             <Image
               source={require("@/assets/images/logo.png")}
               className="w-[155px] h-[85px] mt-7"
             />
+          </View>
+          <View style={{ justifyContent: "center", alignItems: "center" }}>
+            <MainButton
+              style={{ width: "80%", marginTop: 20 }}
+              href="/"
+              text="NORMAL"
+            />
+            <MainButton
+              style={{ width: "80%", marginTop: 20 }}
+              href="/"
+              text="RANKED"
+            />
+            <MainButton
+              style={{ width: "80%", marginTop: 20 }}
+              href="/"
+              text="INVITE FRIEND"
+            />
+          </View>
+          <View
+            style={{
+              position: "absolute",
+              bottom: 30 + insets.bottom,
+              marginLeft: 20,
+            }}
+          >
+            <Link href="/" asChild>
+              <Pressable
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Ionicons
+                  name="arrow-back"
+                  color={Colors.main.text}
+                  size={40}
+                />
+                <ThemedText style={{ fontSize: 30 }}>Back</ThemedText>
+              </Pressable>
+            </Link>
           </View>
         </SafeAreaView>
       </GestureHandlerRootView>

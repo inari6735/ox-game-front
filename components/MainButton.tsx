@@ -1,10 +1,5 @@
 import { FunctionComponent } from "react"
-import {
-  TouchableOpacity,
-  StyleSheet,
-  TouchableOpacityProps,
-  Pressable,
-} from "react-native"
+import { StyleSheet, Pressable } from "react-native"
 import ThemedText from "@/components/ThemedText"
 import { Colors } from "@/constants/Colors"
 import { Link, LinkProps, Route } from "expo-router"
