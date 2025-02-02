@@ -3,19 +3,24 @@ import {
   TouchableOpacity,
   StyleSheet,
   TouchableOpacityProps,
+  Pressable,
 } from "react-native"
 import ThemedText from "@/components/ThemedText"
 import { Colors } from "@/constants/Colors"
+import { Link, LinkProps, Route } from "expo-router"
 
-type Props = TouchableOpacityProps & {
+type Props = LinkProps & {
   text: string
+  href: Route
 }
 
-const MainButton: FunctionComponent<Props> = ({ style, text }) => {
+const MainButton: FunctionComponent<Props> = ({ style, text, href }) => {
   return (
-    <TouchableOpacity style={[styles.button, style]} onPress={() => {}}>
-      <ThemedText style={styles.buttonText}>{text}</ThemedText>
-    </TouchableOpacity>
+    <Link style={[styles.button, style]} href={href} asChild>
+      <Pressable>
+        <ThemedText style={styles.buttonText}>{text}</ThemedText>
+      </Pressable>
+    </Link>
   )
 }
 

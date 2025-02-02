@@ -44,6 +44,7 @@ export default function Index() {
             <MainButton
               style={{ marginLeft: 30, marginRight: 30 }}
               text="PLAY"
+              href="/games"
             />
             <OptionButton
               icon="settings"

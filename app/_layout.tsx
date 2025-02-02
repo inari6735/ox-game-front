@@ -1,34 +1,35 @@
-import { useFonts } from "expo-font";
+import { useFonts } from "expo-font"
 import "@/global.css"
 
-import { Stack } from "expo-router";
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from "react";
-import { StatusBar } from "expo-status-bar";
-import React from "react";
-SplashScreen.preventAutoHideAsync();
+import { Stack } from "expo-router"
+import * as SplashScreen from "expo-splash-screen"
+import { useEffect } from "react"
+import { StatusBar } from "expo-status-bar"
+import React from "react"
+SplashScreen.preventAutoHideAsync()
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    'Carter-One': require('@/assets/fonts/CarterOne-Regular.ttf'),
-  });
+    "Carter-One": require("@/assets/fonts/CarterOne-Regular.ttf"),
+  })
 
   useEffect(() => {
     if (loaded || error) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync()
     }
-  }, [loaded, error]);
+  }, [loaded, error])
 
   if (!loaded && !error) {
-    return null;
+    return null
   }
 
   return (
     <>
       <Stack>
         <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="games" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="dark" />
     </>
-  );
+  )
 }
