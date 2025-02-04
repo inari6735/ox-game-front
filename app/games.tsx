@@ -52,7 +52,7 @@ export default function Games() {
           <View style={{ justifyContent: "center", alignItems: "center" }}>
             <MainButton
               style={{ width: "80%", marginTop: 20 }}
-              href="/"
+              href="/game"
               text="NORMAL"
             />
             <MainButton

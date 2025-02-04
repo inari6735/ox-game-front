@@ -31,6 +31,7 @@ export default function RootLayout() {
           options={{ headerShown: false, animation: "slide_from_left" }}
         />
         <Stack.Screen name="games" options={{ headerShown: false }} />
+        <Stack.Screen name="game" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="dark" />
     </>
