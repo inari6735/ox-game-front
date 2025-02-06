@@ -10,7 +10,7 @@ import {
 } from "react-native-gesture-handler"
 import { Colors } from "@/constants/Colors"
 import { TouchableOpacity, View } from "react-native"
-import { useCallback, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import ThemedText from "@/components/ThemedText"
 import Animated, {
   useAnimatedStyle,
@@ -18,7 +18,7 @@ import Animated, {
 } from "react-native-reanimated"
 
 type Board = Array<Array<number | null>>
-type WinResult = {
+type WinResult = null | {
   winnerId: number | null
   winningCells: Array<Array<number>>
 }
@@ -57,17 +57,34 @@ export default function Game() {
       {rowData.map((cell, cellIndex) => (
         <TouchableOpacity
           key={cellIndex}
-          style={{
-            borderWidth: 0.5,
-            borderColor: Colors.main.text,
-            width: CELL_SIZE,
-            height: CELL_SIZE,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          style={[
+            {
+              borderWidth: 0.5,
+              borderColor: Colors.main.text,
+              width: CELL_SIZE,
+              height: CELL_SIZE,
+              alignItems: "center",
+              justifyContent: "center",
+            },
+            winResult?.winningCells?.some(
+              ([x, y]) => x === rowIndex && y === cellIndex,
+            ) && { backgroundColor: "#d4edda" },
+          ]}
           onPress={() => handlePress(rowIndex, cellIndex)}
         >
-          if (cell) {<ThemedText key={cellIndex}>{symbols[cell]}</ThemedText>}
+          if (cell)
+          {
+            <ThemedText
+              style={[
+                winResult?.winningCells?.some(
+                  ([x, y]) => x === rowIndex && y === cellIndex,
+                ) && { backgroundColor: "#d4edda" },
+              ]}
+              key={cellIndex}
+            >
+              {symbols[cell]}
+            </ThemedText>
+          }
         </TouchableOpacity>
       ))}
     </View>
@@ -111,7 +128,7 @@ export default function Game() {
   const composed = Gesture.Race(dragGesture, pinchGesture)
 
   const [currentPlayerId, setCurrentPlayerId] = useState<number | null>(user.id)
-  const [winnerId, setWinnerId] = useState<number | null>(null)
+  const [winResult, setWinResult] = useState<WinResult>(null)
 
   const checkFiveInARow = useCallback((newBoard: Board): WinResult | null => {
     const directions = [
@@ -163,7 +180,7 @@ export default function Game() {
 
   const handlePress = useCallback(
     (rowIndexParameter: number, colIndexParameter: number) => {
-      if (winnerId || board[rowIndexParameter][colIndexParameter]) return
+      if (winResult || board[rowIndexParameter][colIndexParameter]) return
 
       const nextBoard = board.map((row, rowIndex) =>
         row.map((col, colIndex) =>
@@ -178,13 +195,13 @@ export default function Game() {
       const result = checkFiveInARow(nextBoard)
 
       if (result) {
-        setWinnerId(result.winnerId)
+        setWinResult(result)
       } else {
         const nextPlayer = currentPlayerId === user.id ? oponnent.id : user.id
         setCurrentPlayerId(nextPlayer)
       }
     },
-    [board, currentPlayerId, winnerId, checkFiveInARow],
+    [board, currentPlayerId, winResult, checkFiveInARow],
   )
 
   return (
