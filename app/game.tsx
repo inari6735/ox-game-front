@@ -2,6 +2,7 @@ import {
   SafeAreaProvider,
   SafeAreaView,
   useSafeAreaFrame,
+  useSafeAreaInsets,
 } from "react-native-safe-area-context"
 import {
   Gesture,
@@ -10,12 +11,14 @@ import {
 } from "react-native-gesture-handler"
 import { Colors } from "@/constants/Colors"
 import { TouchableOpacity, View } from "react-native"
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 import ThemedText from "@/components/ThemedText"
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated"
+import Svg, { Path } from "react-native-svg"
+import MainButton from "@/components/MainButton"
 
 type Board = Array<Array<number | null>>
 type WinResult = null | {
@@ -25,6 +28,7 @@ type WinResult = null | {
 
 const BOARD_SIZE = 20
 const WIN_CONDITION = 5
+const TABLE_BORDERWIDTH = 1
 
 const initialBoard: Board = Array.from({ length: BOARD_SIZE }, () =>
   Array(BOARD_SIZE).fill(null),
@@ -49,46 +53,11 @@ const symbols = {
 
 export default function Game() {
   const { width } = useSafeAreaFrame()
-  const TABLE_WIDTH = width
+  const svgCurveHeight = 50
+  const svgHeight = 150
+  const TABLE_WIDTH = width * 0.95
   const CELL_SIZE = TABLE_WIDTH / BOARD_SIZE
   const [board, setBoard] = useState<Board>(initialBoard)
-  const table = board.map((rowData, rowIndex) => (
-    <View key={rowIndex} style={{ flexDirection: "row", width: TABLE_WIDTH }}>
-      {rowData.map((cell, cellIndex) => (
-        <TouchableOpacity
-          key={cellIndex}
-          style={[
-            {
-              borderWidth: 0.5,
-              borderColor: Colors.main.text,
-              width: CELL_SIZE,
-              height: CELL_SIZE,
-              alignItems: "center",
-              justifyContent: "center",
-            },
-            winResult?.winningCells?.some(
-              ([x, y]) => x === rowIndex && y === cellIndex,
-            ) && { backgroundColor: "#d4edda" },
-          ]}
-          onPress={() => handlePress(rowIndex, cellIndex)}
-        >
-          if (cell)
-          {
-            <ThemedText
-              style={[
-                winResult?.winningCells?.some(
-                  ([x, y]) => x === rowIndex && y === cellIndex,
-                ) && { backgroundColor: "#d4edda" },
-              ]}
-              key={cellIndex}
-            >
-              {symbols[cell]}
-            </ThemedText>
-          }
-        </TouchableOpacity>
-      ))}
-    </View>
-  ))
 
   const scale = useSharedValue(1)
   const savedScale = useSharedValue(1)
@@ -204,6 +173,52 @@ export default function Game() {
     [board, currentPlayerId, winResult, checkFiveInARow],
   )
 
+  const table = useMemo(
+    () =>
+      board.map((rowData, rowIndex) => (
+        <View
+          key={rowIndex}
+          style={{ flexDirection: "row", width: TABLE_WIDTH }}
+        >
+          {rowData.map((cell, cellIndex) => (
+            <TouchableOpacity
+              key={cellIndex}
+              style={[
+                {
+                  borderColor: Colors.main.text,
+                  backgroundColor: Colors.main.background,
+                  width: CELL_SIZE,
+                  height: CELL_SIZE,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderLeftWidth: TABLE_BORDERWIDTH,
+                  borderTopWidth: TABLE_BORDERWIDTH,
+                },
+                winResult?.winningCells?.some(
+                  ([x, y]) => x === rowIndex && y === cellIndex,
+                ) && { backgroundColor: "#d4edda" },
+                rowIndex === BOARD_SIZE - 1 && {
+                  borderBottomWidth: TABLE_BORDERWIDTH,
+                },
+                cellIndex === BOARD_SIZE - 1 && {
+                  borderRightWidth: TABLE_BORDERWIDTH,
+                },
+              ]}
+              onPress={() => handlePress(rowIndex, cellIndex)}
+            >
+              if (cell)
+              {
+                <ThemedText style={{ fontSize: 10 }} key={cellIndex}>
+                  {symbols[cell]}
+                </ThemedText>
+              }
+            </TouchableOpacity>
+          ))}
+        </View>
+      )),
+    [board, winResult],
+  )
+
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView>
@@ -211,13 +226,22 @@ export default function Game() {
           style={{ backgroundColor: Colors.main.background, display: "flex" }}
           className="h-full"
         >
+          <Svg style={{ position: "absolute" }}>
+            <Path
+              d={`M0,0 H${width} V${svgCurveHeight} Q${
+                width / 2
+              },${svgHeight} 0,${svgCurveHeight} Z`}
+              fill={Colors.main.theme}
+            />
+          </Svg>
           <GestureDetector gesture={composed}>
             <Animated.View
               style={[
                 {
                   minWidth: "auto",
-                  //   padding: 2,
-                  borderWidth: 1,
+                  marginTop: svgCurveHeight + 70,
+                  justifyContent: "center",
+                  alignItems: "center",
                 },
                 animatedStyle,
               ]}
@@ -225,6 +249,28 @@ export default function Game() {
               {table}
             </Animated.View>
           </GestureDetector>
+          <View
+            style={{
+              width: "100%",
+              flex: 1,
+              justifyContent: "flex-end",
+              alignItems: "center",
+            }}
+          >
+            <TouchableOpacity
+              style={{
+                width: "95%",
+                height: 100,
+                backgroundColor: Colors.main.theme,
+                marginBottom: 20,
+                borderRadius: 20,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <ThemedText style={{ fontSize: 30 }}>Confirm</ThemedText>
+            </TouchableOpacity>
+          </View>
         </SafeAreaView>
       </GestureHandlerRootView>
     </SafeAreaProvider>
