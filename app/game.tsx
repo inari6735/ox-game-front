@@ -2,7 +2,6 @@ import {
   SafeAreaProvider,
   SafeAreaView,
   useSafeAreaFrame,
-  useSafeAreaInsets,
 } from "react-native-safe-area-context"
 import {
   Gesture,
@@ -10,15 +9,15 @@ import {
   GestureHandlerRootView,
 } from "react-native-gesture-handler"
 import { Colors } from "@/constants/Colors"
-import { TouchableOpacity, View } from "react-native"
-import { useCallback, useMemo, useRef, useState } from "react"
+import { StyleSheet, TouchableOpacity, View } from "react-native"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import ThemedText from "@/components/ThemedText"
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated"
 import Svg, { Path } from "react-native-svg"
-import MainButton from "@/components/MainButton"
+import LinkedOptionButton from "@/components/LinkedOptionButton"
 
 type Board = Array<Array<number | null>>
 type WinResult = null | {
@@ -219,6 +218,28 @@ export default function Game() {
     [board, winResult],
   )
 
+  const [disabled, setDisabled] = useState<boolean>(false)
+  const [timeLeft, setTimeLeft] = useState<number>(0)
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout
+
+    if (disabled && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => prev - 1)
+      }, 1000)
+    } else if (timeLeft === 0) {
+      setDisabled(false)
+    }
+
+    return () => clearInterval(timer)
+  }, [disabled, timeLeft])
+
+  const handleClick = (): void => {
+    setDisabled(true)
+    setTimeLeft(20)
+  }
+
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView>
@@ -258,21 +279,71 @@ export default function Game() {
             }}
           >
             <TouchableOpacity
+              onPress={handleClick}
+              disabled={disabled}
+              style={[styles.mainButton, disabled && styles.mainButtonDisabled]}
+            >
+              <ThemedText style={styles.mainButtonText}>
+                {disabled ? `Odblokowanie za ${timeLeft}s` : "Confirm"}
+              </ThemedText>
+            </TouchableOpacity>
+            <View
               style={{
-                width: "95%",
-                height: 100,
-                backgroundColor: Colors.main.theme,
-                marginBottom: 20,
-                borderRadius: 20,
                 justifyContent: "center",
                 alignItems: "center",
+                flexDirection: "row",
+                width: "100%",
               }}
             >
-              <ThemedText style={{ fontSize: 30 }}>Confirm</ThemedText>
-            </TouchableOpacity>
+              <LinkedOptionButton
+                icon="arrow-back"
+                iconColor={Colors.main.text}
+                iconSize={24}
+                style={{ width: "30%" }}
+                href="/games"
+              />
+
+              <LinkedOptionButton
+                icon="pause"
+                iconColor={Colors.main.text}
+                iconSize={24}
+                style={{
+                  width: "30%",
+                  marginRight: "2.5%",
+                  marginLeft: "2.5%",
+                }}
+                href="/games"
+              />
+
+              <LinkedOptionButton
+                icon="repeat"
+                iconColor={Colors.main.text}
+                iconSize={24}
+                style={{ width: "30%" }}
+                href="/games"
+              />
+            </View>
           </View>
         </SafeAreaView>
       </GestureHandlerRootView>
     </SafeAreaProvider>
   )
 }
+
+const styles = StyleSheet.create({
+  mainButton: {
+    width: "95%",
+    height: 100,
+    backgroundColor: Colors.main.theme,
+    marginBottom: 20,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  mainButtonText: {
+    fontSize: 30,
+  },
+  mainButtonDisabled: {
+    backgroundColor: "gray",
+  },
+})
