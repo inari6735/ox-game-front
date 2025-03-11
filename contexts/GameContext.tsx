@@ -13,8 +13,9 @@ interface GameContextType {
   currentPlayerId: number | null;
   winResult: WinResult;
   symbols: Record<number, string>;
-  handlePress: (rowIndex: number, colIndex: number) => void;
-  handleClick: () => void;
+  selectedCell: [number, number] | null;
+  handleCellSelect: (rowIndex: number, colIndex: number) => void;
+  handleConfirm: () => void;
   disabled: boolean;
   timeLeft: number;
   resetGame: () => void;
@@ -61,6 +62,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   const [winResult, setWinResult] = useState<WinResult>(null);
   const [disabled, setDisabled] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [selectedCell, setSelectedCell] = useState<[number, number] | null>(null);
 
   // Reset game state
   const resetGame = useCallback(() => {
@@ -71,35 +73,62 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     setTimeLeft(0);
   }, [players]);
 
-  // Handle cell press
-  const handlePress = useCallback(
+  // Handle cell selection
+  const handleCellSelect = useCallback(
     (rowIndex: number, colIndex: number) => {
-      if (winResult || board[rowIndex][colIndex]) return;
-
-      const nextBoard = board.map((row, r) =>
-        row.map((cell, c) =>
-          r === rowIndex && c === colIndex ? currentPlayerId : cell
-        )
-      );
-
-      setBoard(nextBoard);
-
-      const result = checkFiveInARow(nextBoard);
-
-      if (result) {
-        setWinResult(result);
-      } else {
-        const nextPlayer =
-          currentPlayerId === players[0].id ? players[1].id : players[0].id;
-        setCurrentPlayerId(nextPlayer);
-      }
+      // Don't allow selection if the game is over or the cell is already filled
+      if (winResult || board[rowIndex][colIndex] || disabled) return;
+      
+      // Set the selected cell
+      setSelectedCell([rowIndex, colIndex]);
     },
-    [board, currentPlayerId, winResult, players]
+    [board, winResult, disabled]
   );
 
   // Handle confirm button click
-  const handleClick = useCallback(() => {
-    setDisabled(true);
+  const handleConfirm = useCallback(() => {
+    // If no cell is selected or the game is over, do nothing
+    if (!selectedCell || winResult) return;
+    
+    const [rowIndex, colIndex] = selectedCell;
+    
+    // Don't allow confirmation if the cell is already filled
+    if (board[rowIndex][colIndex]) return;
+
+    // Update the board with the current player's mark
+    const nextBoard = board.map((row, r) =>
+      row.map((cell, c) =>
+        r === rowIndex && c === colIndex ? currentPlayerId : cell
+      )
+    );
+
+    setBoard(nextBoard);
+    
+    // Check for a win
+    const result = checkFiveInARow(nextBoard);
+
+    if (result) {
+      setWinResult(result);
+      // Stop the timer if the game is over
+      setTimeLeft(0);
+      setDisabled(false);
+    } else {
+      // Switch to the next player
+      const nextPlayer =
+        currentPlayerId === players[0].id ? players[1].id : players[0].id;
+      setCurrentPlayerId(nextPlayer);
+      
+      // Reset the timer for the next player
+      setTimeLeft(20);
+    }
+    
+    // Reset the selected cell
+    setSelectedCell(null);
+    
+  }, [board, currentPlayerId, selectedCell, winResult, players]);
+
+  // Start the game with a timer for the first player
+  useEffect(() => {
     setTimeLeft(20);
   }, []);
 
@@ -107,16 +136,21 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   useEffect(() => {
     let timer: NodeJS.Timeout;
 
-    if (disabled && timeLeft > 0) {
+    if (timeLeft > 0 && !winResult) {
       timer = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
-    } else if (timeLeft === 0) {
-      setDisabled(false);
+    } else if (timeLeft === 0 && !winResult) {
+      // Time's up, switch to the next player
+      const nextPlayer =
+        currentPlayerId === players[0].id ? players[1].id : players[0].id;
+      setCurrentPlayerId(nextPlayer);
+      setSelectedCell(null);
+      setTimeLeft(20); // Reset timer for next player
     }
 
     return () => clearInterval(timer);
-  }, [disabled, timeLeft]);
+  }, [timeLeft, winResult, currentPlayerId, players]);
 
   return (
     <GameContext.Provider
@@ -126,8 +160,9 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
         currentPlayerId,
         winResult,
         symbols,
-        handlePress,
-        handleClick,
+        selectedCell,
+        handleCellSelect,
+        handleConfirm,
         disabled,
         timeLeft,
         resetGame,

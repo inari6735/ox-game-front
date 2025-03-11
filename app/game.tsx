@@ -18,28 +18,35 @@ import { useTheme } from "@/contexts/ThemeContext"
 const GameControls = memo(({ 
   onConfirm, 
   onReset,
-  disabled, 
   timeLeft,
-  colors
+  colors,
+  currentPlayer,
+  hasSelection
 }: { 
   onConfirm: () => void,
   onReset: () => void,
-  disabled: boolean, 
   timeLeft: number,
-  colors: any
+  colors: any,
+  currentPlayer: string,
+  hasSelection: boolean
 }) => (
   <View style={styles.controlsContainer}>
+    <View style={styles.playerInfoContainer}>
+      <ThemedText style={styles.playerInfoText}>
+        Player: {currentPlayer} - Time left: {timeLeft}s
+      </ThemedText>
+    </View>
     <TouchableOpacity
       onPress={onConfirm}
-      disabled={disabled}
+      disabled={!hasSelection}
       style={[
         styles.mainButton, 
         { backgroundColor: colors.theme },
-        disabled && styles.mainButtonDisabled
+        !hasSelection && styles.mainButtonDisabled
       ]}
     >
       <ThemedText style={styles.mainButtonText}>
-        {disabled ? `Unlocking in ${timeLeft}s` : "Confirm"}
+        {hasSelection ? "Confirm" : "Select a cell"}
       </ThemedText>
     </TouchableOpacity>
     <View style={styles.optionsContainer}>
@@ -79,12 +86,14 @@ export default function Game() {
   const {
     board,
     winResult,
-    handlePress,
-    handleClick,
+    handleCellSelect,
+    handleConfirm,
     timeLeft,
     disabled,
     symbols,
-    resetGame
+    resetGame,
+    selectedCell,
+    currentPlayerId
   } = useGame();
 
   // Wrap resetGame in useCallback to prevent unnecessary re-renders
@@ -114,16 +123,19 @@ export default function Game() {
             board={board}
             winResult={winResult}
             symbols={symbols}
-            handlePress={handlePress}
+            handleCellSelect={handleCellSelect}
+            selectedCell={selectedCell}
+            currentPlayerId={currentPlayerId}
           />
           
           {/* Game controls */}
           <GameControls 
-            onConfirm={handleClick}
+            onConfirm={handleConfirm}
             onReset={handleReset}
-            disabled={disabled}
             timeLeft={timeLeft}
             colors={colors}
+            currentPlayer={symbols[currentPlayerId || 1]}
+            hasSelection={!!selectedCell}
           />
         </SafeAreaView>
       </GestureHandlerRootView>
@@ -143,6 +155,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-end",
     alignItems: "center",
+  },
+  playerInfoContainer: {
+    width: "95%",
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 10,
+    backgroundColor: "rgba(255, 183, 3, 0.2)",
+    alignItems: "center",
+  },
+  playerInfoText: {
+    fontSize: 18,
+    fontWeight: "bold",
   },
   mainButton: {
     width: "95%",

@@ -14,8 +14,10 @@ import { useTheme } from "@/contexts/ThemeContext"
 interface GameBoardProps {
   board: Board
   winResult: WinResult
-  handlePress: (rowIndex: number, colIndex: number) => void
+  handleCellSelect: (rowIndex: number, colIndex: number) => void
+  selectedCell: [number, number] | null
   symbols: Record<number, string>
+  currentPlayerId?: number | null
   players?: []
 }
 
@@ -23,7 +25,9 @@ const GameBoard: FunctionComponent<GameBoardProps> = ({
   board,
   winResult,
   symbols,
-  handlePress,
+  handleCellSelect,
+  selectedCell,
+  currentPlayerId,
 }) => {
   const { width } = useSafeAreaFrame();
   const { colors } = useTheme();
@@ -85,6 +89,7 @@ const GameBoard: FunctionComponent<GameBoardProps> = ({
       const isWinningCell = winningCellsMap[`${rowIndex}-${cellIndex}`];
       const isLastRow = rowIndex === BOARD_SIZE - 1;
       const isLastColumn = cellIndex === BOARD_SIZE - 1;
+      const isSelected = selectedCell && selectedCell[0] === rowIndex && selectedCell[1] === cellIndex;
       
       return (
         <TouchableOpacity
@@ -99,20 +104,26 @@ const GameBoard: FunctionComponent<GameBoardProps> = ({
             },
             styles.cellBorder,
             isWinningCell && styles.winningCell,
+            isSelected && styles.selectedCell,
             isLastRow && styles.lastRowCell,
             isLastColumn && styles.lastColumnCell,
           ]}
-          onPress={() => handlePress(rowIndex, cellIndex)}
+          onPress={() => handleCellSelect(rowIndex, cellIndex)}
         >
           {cellValue && (
             <ThemedText style={styles.cellText}>
               {symbols[cellValue]}
             </ThemedText>
           )}
+          {isSelected && !cellValue && (
+            <ThemedText style={[styles.cellText, styles.selectedCellText]}>
+              {symbols[currentPlayerId || 1]}
+            </ThemedText>
+          )}
         </TouchableOpacity>
       );
     },
-    [colors, CELL_SIZE, winningCellsMap, symbols, handlePress]
+    [colors, CELL_SIZE, winningCellsMap, symbols, handleCellSelect, selectedCell, currentPlayerId]
   );
 
   // Memoized row renderer
@@ -174,6 +185,12 @@ const styles = StyleSheet.create({
   cellText: {
     fontSize: 10,
     fontWeight: "bold",
+  },
+  selectedCell: {
+    backgroundColor: "rgba(255, 183, 3, 0.2)",
+  },
+  selectedCellText: {
+    opacity: 0.5,
   },
   winningCell: {
     backgroundColor: "#d4edda",
