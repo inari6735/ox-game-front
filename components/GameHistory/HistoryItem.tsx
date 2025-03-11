@@ -4,9 +4,21 @@ import ThemedText from "@/components/ThemedText"
 import ScoreItem from "@/components/GameHistory/ScoreItem"
 import { Colors } from "@/constants/Colors"
 
-type Props = ViewProps
+type Props = ViewProps & {
+  player1: {
+    name: string
+    score: number
+  }
+  player2: {
+    name: string
+    score: number
+  }
+}
 
-const HistoryItem: FunctionComponent<Props> = ({ style }) => {
+const HistoryItem: FunctionComponent<Props> = ({ style, player1, player2 }) => {
+  const isWinner = player1.score > player2.score;
+  const isDraw = player1.score === player2.score;
+  
   return (
     <View
       style={[
@@ -33,7 +45,10 @@ const HistoryItem: FunctionComponent<Props> = ({ style }) => {
           borderRadius: 20,
         }}
       >
-        <ScoreItem playerName="Inari" playerScore={5} />
+        <ScoreItem 
+          playerName={player1.name} 
+          playerScore={player1.score} 
+        />
       </View>
       <ThemedText
         style={{
@@ -50,7 +65,7 @@ const HistoryItem: FunctionComponent<Props> = ({ style }) => {
         style={{
           width: "45%",
           backgroundColor: Colors.main.item,
-          opacity: 40,
+          opacity: isDraw ? 40 : (isWinner ? 40 : 100),
           height: 40,
           display: "flex",
           justifyContent: "center",
@@ -60,8 +75,8 @@ const HistoryItem: FunctionComponent<Props> = ({ style }) => {
       >
         <ScoreItem
           style={{ flexDirection: "row-reverse" }}
-          playerName="Inari"
-          playerScore={5}
+          playerName={player2.name}
+          playerScore={player2.score}
         />
       </View>
     </View>

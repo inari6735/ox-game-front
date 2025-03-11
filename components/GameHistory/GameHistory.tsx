@@ -1,12 +1,44 @@
-import { FunctionComponent } from "react"
+import { FunctionComponent, useMemo } from "react"
 import { ScrollView } from "react-native-gesture-handler"
 import HistoryItem from "@/components/GameHistory/HistoryItem"
 import { View, ViewProps } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
+import ThemedText from "../ThemedText"
 
-type Props = ViewProps
+export type GameHistoryItem = {
+  id: string
+  player1: {
+    name: string
+    score: number
+  }
+  player2: {
+    name: string
+    score: number
+  }
+}
 
-const GameHistory: FunctionComponent<Props> = ({ style }) => {
+type Props = ViewProps & {
+  historyItems?: GameHistoryItem[]
+}
+
+const GameHistory: FunctionComponent<Props> = ({ style, historyItems }) => {
+  // Mock data - in a real app, this would come from props or API
+  const mockHistoryItems = useMemo(() => {
+    return Array.from({ length: 12 }, (_, i) => ({
+      id: `game-${i}`,
+      player1: {
+        name: "Inari",
+        score: 5
+      },
+      player2: {
+        name: "Henryk",
+        score: 3
+      }
+    }));
+  }, []);
+
+  const items = historyItems || mockHistoryItems;
+
   return (
     <View
       style={[
@@ -20,25 +52,25 @@ const GameHistory: FunctionComponent<Props> = ({ style }) => {
         style,
       ]}
     >
-      <ScrollView
-        contentContainerStyle={{
-          width: "100%",
-          paddingBottom: 30,
-        }}
-      >
-        <HistoryItem style={{ marginBottom: 5 }} />
-        <HistoryItem style={{ marginBottom: 5 }} />
-        <HistoryItem style={{ marginBottom: 5 }} />
-        <HistoryItem style={{ marginBottom: 5 }} />
-        <HistoryItem style={{ marginBottom: 5 }} />
-        <HistoryItem style={{ marginBottom: 5 }} />
-        <HistoryItem style={{ marginBottom: 5 }} />
-        <HistoryItem style={{ marginBottom: 5 }} />
-        <HistoryItem style={{ marginBottom: 5 }} />
-        <HistoryItem style={{ marginBottom: 5 }} />
-        <HistoryItem style={{ marginBottom: 5 }} />
-        <HistoryItem style={{ marginBottom: 5 }} />
-      </ScrollView>
+      {items.length === 0 ? (
+        <ThemedText>No game history available</ThemedText>
+      ) : (
+        <ScrollView
+          contentContainerStyle={{
+            width: "100%",
+            paddingBottom: 30,
+          }}
+        >
+          {items.map((item) => (
+            <HistoryItem 
+              key={item.id}
+              style={{ marginBottom: 5 }} 
+              player1={item.player1}
+              player2={item.player2}
+            />
+          ))}
+        </ScrollView>
+      )}
       <LinearGradient
         colors={["transparent", "rgba(255, 184, 0, 0)", "rgba(255, 184, 0, 1)"]}
         style={{

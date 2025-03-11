@@ -6,20 +6,27 @@ import {
 } from "@/constants/gameLogic"
 import { useCallback, useEffect, useState } from "react"
 
+export type Player = {
+  id: number
+  name: string
+  symbolIcon: string
+}
+
 export const useGameState = () => {
-  const user = {
+  // Player data could be passed as props or fetched from a context/API
+  const user: Player = {
     id: 1,
     name: "Piotr",
     symbolIcon: "O",
   }
 
-  const oponnent = {
+  const opponent: Player = {
     id: 2,
     name: "Henryk",
     symbolIcon: "X",
   }
 
-  const players = [user, oponnent]
+  const players = [user, opponent]
   const symbols = Object.fromEntries(
     players.map((player) => [player.id, player.symbolIcon]),
   )
@@ -28,15 +35,16 @@ export const useGameState = () => {
     players[0].id,
   )
   const [winResult, setWinResult] = useState<WinResult>(null)
+  
   const handlePress = useCallback(
-    (rowIndexParameter: number, colIndexParameter: number) => {
-      if (winResult || board[rowIndexParameter][colIndexParameter]) return
+    (rowIndex: number, colIndex: number) => {
+      if (winResult || board[rowIndex][colIndex]) return
 
-      const nextBoard = board.map((row, rowIndex) =>
-        row.map((col, colIndex) =>
-          rowIndex === rowIndexParameter && colIndex === colIndexParameter
+      const nextBoard = board.map((row, r) =>
+        row.map((cell, c) =>
+          r === rowIndex && c === colIndex
             ? currentPlayerId
-            : col,
+            : cell,
         ),
       )
 
@@ -52,7 +60,7 @@ export const useGameState = () => {
         setCurrentPlayerId(nextPlayer)
       }
     },
-    [board, currentPlayerId, winResult, checkFiveInARow],
+    [board, currentPlayerId, winResult],
   )
 
   const [disabled, setDisabled] = useState<boolean>(false)

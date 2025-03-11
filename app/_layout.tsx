@@ -6,7 +6,17 @@ import * as SplashScreen from "expo-splash-screen"
 import { useEffect } from "react"
 import { StatusBar } from "expo-status-bar"
 import React from "react"
+import { ThemeProvider, useTheme } from "@/contexts/ThemeContext"
+import { GameProvider } from "@/contexts/GameContext"
+
+// Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync()
+
+// Status bar component that adapts to theme
+const ThemedStatusBar = () => {
+  const { isDarkMode } = useTheme();
+  return <StatusBar style={isDarkMode ? "light" : "dark"} />;
+};
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -24,16 +34,18 @@ export default function RootLayout() {
   }
 
   return (
-    <>
-      <Stack>
-        <Stack.Screen
-          name="index"
-          options={{ headerShown: false, animation: "slide_from_left" }}
-        />
-        <Stack.Screen name="games" options={{ headerShown: false }} />
-        <Stack.Screen name="game" options={{ headerShown: false }} />
-      </Stack>
-      <StatusBar style="dark" />
-    </>
+    <ThemeProvider>
+      <GameProvider>
+        <Stack>
+          <Stack.Screen
+            name="index"
+            options={{ headerShown: false, animation: "slide_from_left" }}
+          />
+          <Stack.Screen name="games" options={{ headerShown: false }} />
+          <Stack.Screen name="game" options={{ headerShown: false }} />
+        </Stack>
+        <ThemedStatusBar />
+      </GameProvider>
+    </ThemeProvider>
   )
 }

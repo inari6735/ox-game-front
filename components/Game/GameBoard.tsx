@@ -1,31 +1,32 @@
-import { Colors } from "@/constants/Colors"
 import { Board, BOARD_SIZE } from "@/constants/gameLogic"
 import { FunctionComponent, useMemo } from "react"
-import { TouchableOpacity, View } from "react-native"
+import { StyleSheet, TouchableOpacity, View } from "react-native"
 import { Gesture, GestureDetector } from "react-native-gesture-handler"
 import Animated, {
-  AnimatedProps,
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated"
 import { useSafeAreaFrame } from "react-native-safe-area-context"
 import { WinResult } from "@/constants/gameLogic"
 import ThemedText from "@/components/ThemedText"
+import { useTheme } from "@/contexts/ThemeContext"
 
-type Props = AnimatedProps<View> & {
+interface GameBoardProps {
   board: Board
   winResult: WinResult
-  handlePress: CallableFunction
-  players: []
+  handlePress: (rowIndex: number, colIndex: number) => void
+  symbols: Record<number, string>
+  players?: []
 }
 
-const GameBoard: FunctionComponent<Props> = ({
+const GameBoard: FunctionComponent<GameBoardProps> = ({
   board,
   winResult,
   symbols,
   handlePress,
 }) => {
-  const { width } = useSafeAreaFrame()
+  const { width } = useSafeAreaFrame();
+  const { colors } = useTheme();
   const TABLE_WIDTH = width * 0.95
   const CELL_SIZE = TABLE_WIDTH / BOARD_SIZE
   const TABLE_BORDERWIDTH = 1
@@ -69,67 +70,85 @@ const GameBoard: FunctionComponent<Props> = ({
 
   const table = useMemo(
     () =>
-      board.map((rowData, rowIndex) => (
+      board.map((rowData: Array<number | null>, rowIndex: number) => (
         <View
           key={rowIndex}
-          style={{ flexDirection: "row", width: TABLE_WIDTH }}
+          style={[styles.row, { width: TABLE_WIDTH }]}
         >
-          {rowData.map((cell, cellIndex) => (
-            <TouchableOpacity
-              key={cellIndex}
-              style={[
-                {
-                  borderColor: Colors.main.text,
-                  backgroundColor: Colors.main.background,
-                  width: CELL_SIZE,
-                  height: CELL_SIZE,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderLeftWidth: TABLE_BORDERWIDTH,
-                  borderTopWidth: TABLE_BORDERWIDTH,
-                },
-                winResult?.winningCells?.some(
-                  ([x, y]) => x === rowIndex && y === cellIndex,
-                ) && { backgroundColor: "#d4edda" },
-                rowIndex === BOARD_SIZE - 1 && {
-                  borderBottomWidth: TABLE_BORDERWIDTH,
-                },
-                cellIndex === BOARD_SIZE - 1 && {
-                  borderRightWidth: TABLE_BORDERWIDTH,
-                },
-              ]}
-              onPress={() => handlePress(rowIndex, cellIndex)}
-            >
-              if (cell)
-              {
-                <ThemedText style={{ fontSize: 10 }} key={cellIndex}>
-                  {symbols[cell]}
-                </ThemedText>
-              }
-            </TouchableOpacity>
-          ))}
+          {rowData.map((cell: number | null, cellIndex: number) => {
+            const isWinningCell = winResult?.winningCells?.some(
+              (cell: number[]) => cell[0] === rowIndex && cell[1] === cellIndex
+            );
+            const isLastRow = rowIndex === BOARD_SIZE - 1;
+            const isLastColumn = cellIndex === BOARD_SIZE - 1;
+            
+            return (
+              <TouchableOpacity
+                key={cellIndex}
+                style={[
+                  styles.cell,
+                  {
+                    borderColor: colors.text,
+                    backgroundColor: colors.background,
+                    width: CELL_SIZE,
+                    height: CELL_SIZE,
+                    borderLeftWidth: TABLE_BORDERWIDTH,
+                    borderTopWidth: TABLE_BORDERWIDTH,
+                  },
+                  isWinningCell && styles.winningCell,
+                  isLastRow && styles.lastRowCell,
+                  isLastColumn && styles.lastColumnCell,
+                ]}
+                onPress={() => handlePress(rowIndex, cellIndex)}
+              >
+                {cell && (
+                  <ThemedText style={styles.cellText}>
+                    {symbols[cell]}
+                  </ThemedText>
+                )}
+              </TouchableOpacity>
+            );
+          })}
         </View>
       )),
-    [board, winResult],
-  )
+    [board, winResult, colors, CELL_SIZE, TABLE_BORDERWIDTH],
+  );
 
   return (
     <GestureDetector gesture={composed}>
-      <Animated.View
-        style={[
-          {
-            minWidth: "auto",
-            marginTop: 120,
-            justifyContent: "center",
-            alignItems: "center",
-          },
-          animatedStyle,
-        ]}
-      >
+      <Animated.View style={[styles.boardContainer, animatedStyle]}>
         {table}
       </Animated.View>
     </GestureDetector>
-  )
+  );
 }
+
+const styles = StyleSheet.create({
+  boardContainer: {
+    minWidth: "auto",
+    marginTop: 120,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  row: {
+    flexDirection: "row",
+  },
+  cell: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cellText: {
+    fontSize: 10,
+  },
+  winningCell: {
+    backgroundColor: "#d4edda",
+  },
+  lastRowCell: {
+    borderBottomWidth: 1,
+  },
+  lastColumnCell: {
+    borderRightWidth: 1,
+  },
+});
 
 export default GameBoard

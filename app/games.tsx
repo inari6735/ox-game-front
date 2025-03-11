@@ -7,11 +7,54 @@ import {
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { Colors } from "@/constants/Colors"
 import Svg, { Path } from "react-native-svg"
-import { View, Image, Pressable } from "react-native"
+import { View, Image, Pressable, StyleSheet } from "react-native"
 import MainButton from "@/components/MainButton"
 import { Link } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import ThemedText from "@/components/ThemedText"
+import { memo } from "react"
+
+// Game mode options component
+const GameModeOptions = memo(() => (
+  <View style={styles.optionsContainer}>
+    <MainButton
+      style={styles.modeButton}
+      href="/game"
+      text="NORMAL"
+    />
+    <MainButton
+      style={styles.modeButton}
+      href="/"
+      text="RANKED"
+    />
+    <MainButton
+      style={styles.modeButton}
+      href="/"
+      text="INVITE FRIEND"
+    />
+  </View>
+));
+
+// Back button component
+const BackButton = memo(({ bottomInset }: { bottomInset: number }) => (
+  <View
+    style={[
+      styles.backButtonContainer,
+      { bottom: 30 + bottomInset }
+    ]}
+  >
+    <Link href="/" asChild>
+      <Pressable style={styles.backButton}>
+        <Ionicons
+          name="arrow-back"
+          color={Colors.main.text}
+          size={40}
+        />
+        <ThemedText style={styles.backButtonText}>Back</ThemedText>
+      </Pressable>
+    </Link>
+  </View>
+));
 
 export default function Games() {
   const { width } = useSafeAreaFrame()
@@ -24,10 +67,11 @@ export default function Games() {
     <SafeAreaProvider>
       <GestureHandlerRootView>
         <SafeAreaView
-          style={{ backgroundColor: Colors.main.background, display: "flex" }}
+          style={styles.container}
           className="h-full"
         >
-          <Svg style={{ position: "absolute" }}>
+          {/* Curved header background */}
+          <Svg style={styles.headerBackground}>
             <Path
               d={`M0,0 H${width} V${svgCurveHeight} Q${
                 width / 2
@@ -35,64 +79,66 @@ export default function Games() {
               fill={Colors.main.theme}
             />
           </Svg>
+          
+          {/* Logo container */}
           <View
-            style={{
-              width: width,
-              height: topContainerHeight,
-              justifyContent: "center",
-              alignItems: "center",
-              marginBottom: 50,
-            }}
+            style={[
+              styles.logoContainer,
+              {
+                width: width,
+                height: topContainerHeight,
+              }
+            ]}
           >
             <Image
               source={require("@/assets/images/logo.png")}
               className="w-[155px] h-[85px] mt-7"
             />
           </View>
-          <View style={{ justifyContent: "center", alignItems: "center" }}>
-            <MainButton
-              style={{ width: "80%", marginTop: 20 }}
-              href="/game"
-              text="NORMAL"
-            />
-            <MainButton
-              style={{ width: "80%", marginTop: 20 }}
-              href="/"
-              text="RANKED"
-            />
-            <MainButton
-              style={{ width: "80%", marginTop: 20 }}
-              href="/"
-              text="INVITE FRIEND"
-            />
-          </View>
-          <View
-            style={{
-              position: "absolute",
-              bottom: 30 + insets.bottom,
-              marginLeft: 20,
-            }}
-          >
-            <Link href="/" asChild>
-              <Pressable
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Ionicons
-                  name="arrow-back"
-                  color={Colors.main.text}
-                  size={40}
-                />
-                <ThemedText style={{ fontSize: 30 }}>Back</ThemedText>
-              </Pressable>
-            </Link>
-          </View>
+          
+          {/* Game mode options */}
+          <GameModeOptions />
+          
+          {/* Back button */}
+          <BackButton bottomInset={insets.bottom} />
         </SafeAreaView>
       </GestureHandlerRootView>
     </SafeAreaProvider>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: Colors.main.background,
+    display: "flex"
+  },
+  headerBackground: {
+    position: "absolute"
+  },
+  logoContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 50,
+  },
+  optionsContainer: {
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  modeButton: {
+    width: "80%",
+    marginTop: 20
+  },
+  backButtonContainer: {
+    position: "absolute",
+    marginLeft: 20,
+  },
+  backButton: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  backButtonText: {
+    fontSize: 30
+  }
+});
