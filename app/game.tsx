@@ -10,20 +10,83 @@ import Svg, { Path } from "react-native-svg"
 import LinkedOptionButton from "@/components/LinkedOptionButton"
 import ActionOptionButton from "@/components/ActionOptionButton"
 import GameBoard from "@/components/Game/GameBoard"
-import { memo, useCallback } from "react"
+import { memo, useCallback, useEffect } from "react"
 import { useGame } from "@/contexts/GameContext"
 import { useTheme } from "@/contexts/ThemeContext"
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSequence,
+  withRepeat,
+  Easing,
+  interpolateColor
+} from "react-native-reanimated"
 
-// Memoized player info component
-const PlayerInfo = memo(({ currentPlayer, timeLeft }: { currentPlayer: string, timeLeft: number }) => (
-  <View style={styles.playerInfoContainer}>
-    <ThemedText style={styles.playerInfoText}>
-      Player: {currentPlayer} - Time left: {timeLeft}s
-    </ThemedText>
-  </View>
-));
+// Animated player info component
+const PlayerInfo = memo(({ currentPlayer, timeLeft }: { currentPlayer: string, timeLeft: number }) => {
+  // Animation values
+  const scale = useSharedValue(1);
+  const textColor = useSharedValue(0);
+  
+  // Animate when time is running low
+  useEffect(() => {
+    if (timeLeft <= 5 && timeLeft > 0) {
+      // Urgent pulsing animation for low time
+      scale.value = withRepeat(
+        withSequence(
+          withTiming(1.05, { duration: 300 }),
+          withTiming(1, { duration: 300 })
+        ),
+        -1, // Infinite repeat
+        true // Reverse
+      );
+      
+      // Color transition from normal to red
+      textColor.value = withTiming(1, { duration: 500 });
+    } else {
+      // Reset animations
+      scale.value = withTiming(1);
+      textColor.value = withTiming(0);
+    }
+  }, [timeLeft]);
+  
+  // Animated styles
+  const animatedContainerStyle = useAnimatedStyle(() => {
+    const backgroundColor = interpolateColor(
+      textColor.value,
+      [0, 1],
+      ["rgba(255, 183, 3, 0.2)", "rgba(255, 0, 0, 0.2)"]
+    );
+    
+    return {
+      transform: [{ scale: scale.value }],
+      backgroundColor,
+    };
+  });
+  
+  const animatedTextStyle = useAnimatedStyle(() => {
+    const color = interpolateColor(
+      textColor.value,
+      [0, 1],
+      ["#000000", "#FF0000"]
+    );
+    
+    return {
+      color,
+    };
+  });
+  
+  return (
+    <Animated.View style={[styles.playerInfoContainer, animatedContainerStyle]}>
+      <Animated.Text style={[styles.playerInfoText, animatedTextStyle]}>
+        Player: {currentPlayer} - Time left: {timeLeft}s
+      </Animated.Text>
+    </Animated.View>
+  );
+});
 
-// Memoized confirm button component
+// Animated confirm button component
 const ConfirmButton = memo(({ 
   onConfirm, 
   hasSelection, 
@@ -33,23 +96,55 @@ const ConfirmButton = memo(({
   hasSelection: boolean, 
   colors: any 
 }) => {
-  // Pre-compute button style to avoid recreating style arrays on each render
-  const buttonStyle = [
-    styles.mainButton, 
-    { backgroundColor: colors.theme },
-    !hasSelection && styles.mainButtonDisabled
-  ];
+  // Animation values
+  const scale = useSharedValue(1);
+  const elevation = useSharedValue(0);
+  
+  // Animate when selection changes
+  useEffect(() => {
+    if (hasSelection) {
+      // Button becomes available animation
+      scale.value = withSequence(
+        withTiming(1.05, { duration: 200 }),
+        withTiming(1, { duration: 200 })
+      );
+      
+      // Add subtle pulsing effect to draw attention
+      elevation.value = withRepeat(
+        withSequence(
+          withTiming(5, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0, { duration: 1000, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1, // Infinite repeat
+        true // Reverse
+      );
+    } else {
+      // Reset animations
+      scale.value = withTiming(1);
+      elevation.value = withTiming(0);
+    }
+  }, [hasSelection]);
+  
+  // Animated styles
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scale.value }],
+      elevation: elevation.value,
+      backgroundColor: hasSelection ? colors.theme : 'gray',
+    };
+  });
   
   return (
     <TouchableOpacity
       onPress={onConfirm}
       disabled={!hasSelection}
-      style={buttonStyle}
       activeOpacity={0.7} // Improve touch feedback
     >
-      <ThemedText style={styles.mainButtonText}>
-        {hasSelection ? "Confirm" : "Select a cell"}
-      </ThemedText>
+      <Animated.View style={[styles.mainButton, animatedStyle]}>
+        <ThemedText style={styles.mainButtonText}>
+          {hasSelection ? "Confirm" : "Select a cell"}
+        </ThemedText>
+      </Animated.View>
     </TouchableOpacity>
   );
 });
