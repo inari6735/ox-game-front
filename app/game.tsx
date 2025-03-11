@@ -135,27 +135,31 @@ const ConfirmButton = memo(({
   });
   
   return (
-    <TouchableOpacity
-      onPress={onConfirm}
-      disabled={!hasSelection}
-      activeOpacity={0.7} // Improve touch feedback
-    >
-      <Animated.View style={[styles.mainButton, animatedStyle]}>
-        <ThemedText style={styles.mainButtonText}>
-          {hasSelection ? "Confirm" : "Select a cell"}
-        </ThemedText>
-      </Animated.View>
-    </TouchableOpacity>
+    <Animated.View style={{ width: "95%" }}>
+      <TouchableOpacity
+        onPress={onConfirm}
+        disabled={!hasSelection}
+        activeOpacity={0.7} // Improve touch feedback
+      >
+        <Animated.View style={[styles.mainButton, animatedStyle]}>
+          <ThemedText style={styles.mainButtonText}>
+            {hasSelection ? "Confirm" : "Select a cell"}
+          </ThemedText>
+        </Animated.View>
+      </TouchableOpacity>
+    </Animated.View>
   );
 });
 
 // Memoized options container component
 const OptionsContainer = memo(({ 
   onReset, 
-  colors 
+  colors,
+  onResetBoardPosition
 }: { 
   onReset: () => void, 
-  colors: any 
+  colors: any,
+  onResetBoardPosition: () => void
 }) => (
   <View style={styles.optionsContainer}>
     <LinkedOptionButton
@@ -166,12 +170,12 @@ const OptionsContainer = memo(({
       href="/games"
     />
 
-    <LinkedOptionButton
-      icon="pause"
+    <ActionOptionButton
+      icon="refresh"
       iconColor={colors.text}
       iconSize={24}
       style={styles.middleButton}
-      href="/games"
+      onPress={onResetBoardPosition}
     />
 
     <ActionOptionButton
@@ -191,19 +195,25 @@ const GameControls = memo(({
   timeLeft,
   colors,
   currentPlayer,
-  hasSelection
+  hasSelection,
+  onResetBoardPosition
 }: { 
   onConfirm: () => void,
   onReset: () => void,
   timeLeft: number,
   colors: any,
   currentPlayer: string,
-  hasSelection: boolean
+  hasSelection: boolean,
+  onResetBoardPosition: () => void
 }) => (
   <View style={styles.controlsContainer}>
     <PlayerInfo currentPlayer={currentPlayer} timeLeft={timeLeft} />
     <ConfirmButton onConfirm={onConfirm} hasSelection={hasSelection} colors={colors} />
-    <OptionsContainer onReset={onReset} colors={colors} />
+    <OptionsContainer 
+      onReset={onReset} 
+      colors={colors} 
+      onResetBoardPosition={onResetBoardPosition} 
+    />
   </View>
 ));
 
@@ -230,6 +240,14 @@ export default function Game() {
   const handleReset = useCallback(() => {
     resetGame();
   }, [resetGame]);
+  
+  // Function to reset the board position
+  const handleResetBoardPosition = useCallback(() => {
+    // This function will be passed to the GameBoard component
+    // to reset the zoom and position
+    console.log("Reset board position");
+    // The actual implementation will be in the GameBoard component
+  }, []);
 
   return (
     <SafeAreaProvider>
@@ -266,6 +284,7 @@ export default function Game() {
             colors={colors}
             currentPlayer={symbols[currentPlayerId || 1]}
             hasSelection={!!selectedCell}
+            onResetBoardPosition={handleResetBoardPosition}
           />
         </SafeAreaView>
       </GestureHandlerRootView>
