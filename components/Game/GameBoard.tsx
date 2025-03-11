@@ -1,5 +1,5 @@
 import { Board, BOARD_SIZE } from "@/constants/gameLogic"
-import { FunctionComponent, useMemo } from "react"
+import { FunctionComponent, useCallback, useMemo } from "react"
 import { StyleSheet, TouchableOpacity, View } from "react-native"
 import { Gesture, GestureDetector } from "react-native-gesture-handler"
 import Animated, {
@@ -68,56 +68,86 @@ const GameBoard: FunctionComponent<GameBoardProps> = ({
 
   const composed = Gesture.Race(dragGesture, pinchGesture)
 
-  const table = useMemo(
-    () =>
-      board.map((rowData: Array<number | null>, rowIndex: number) => (
-        <View
-          key={rowIndex}
-          style={[styles.row, { width: TABLE_WIDTH }]}
+  // Pre-calculate winning cells map for O(1) lookup instead of using .some() for each cell
+  const winningCellsMap = useMemo(() => {
+    if (!winResult?.winningCells) return {};
+    
+    const map: Record<string, boolean> = {};
+    winResult.winningCells.forEach(([x, y]) => {
+      map[`${x}-${y}`] = true;
+    });
+    return map;
+  }, [winResult]);
+
+  // Memoized cell renderer to prevent unnecessary re-renders
+  const CellComponent = useCallback(
+    ({ rowIndex, cellIndex, cellValue }: { rowIndex: number; cellIndex: number; cellValue: number | null }) => {
+      const isWinningCell = winningCellsMap[`${rowIndex}-${cellIndex}`];
+      const isLastRow = rowIndex === BOARD_SIZE - 1;
+      const isLastColumn = cellIndex === BOARD_SIZE - 1;
+      
+      return (
+        <TouchableOpacity
+          key={`${rowIndex}-${cellIndex}`}
+          style={[
+            styles.cell,
+            { 
+              borderColor: colors.text,
+              backgroundColor: colors.background,
+              width: CELL_SIZE,
+              height: CELL_SIZE,
+            },
+            styles.cellBorder,
+            isWinningCell && styles.winningCell,
+            isLastRow && styles.lastRowCell,
+            isLastColumn && styles.lastColumnCell,
+          ]}
+          onPress={() => handlePress(rowIndex, cellIndex)}
         >
-          {rowData.map((cell: number | null, cellIndex: number) => {
-            const isWinningCell = winResult?.winningCells?.some(
-              (cell: number[]) => cell[0] === rowIndex && cell[1] === cellIndex
-            );
-            const isLastRow = rowIndex === BOARD_SIZE - 1;
-            const isLastColumn = cellIndex === BOARD_SIZE - 1;
-            
-            return (
-              <TouchableOpacity
-                key={cellIndex}
-                style={[
-                  styles.cell,
-                  {
-                    borderColor: colors.text,
-                    backgroundColor: colors.background,
-                    width: CELL_SIZE,
-                    height: CELL_SIZE,
-                    borderLeftWidth: TABLE_BORDERWIDTH,
-                    borderTopWidth: TABLE_BORDERWIDTH,
-                  },
-                  isWinningCell && styles.winningCell,
-                  isLastRow && styles.lastRowCell,
-                  isLastColumn && styles.lastColumnCell,
-                ]}
-                onPress={() => handlePress(rowIndex, cellIndex)}
-              >
-                {cell && (
-                  <ThemedText style={styles.cellText}>
-                    {symbols[cell]}
-                  </ThemedText>
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      )),
-    [board, winResult, colors, CELL_SIZE, TABLE_BORDERWIDTH],
+          {cellValue && (
+            <ThemedText style={styles.cellText}>
+              {symbols[cellValue]}
+            </ThemedText>
+          )}
+        </TouchableOpacity>
+      );
+    },
+    [colors, CELL_SIZE, winningCellsMap, symbols, handlePress]
+  );
+
+  // Memoized row renderer
+  const RowComponent = useCallback(
+    ({ rowData, rowIndex }: { rowData: Array<number | null>; rowIndex: number }) => (
+      <View key={`row-${rowIndex}`} style={[styles.row, { width: TABLE_WIDTH }]}>
+        {rowData.map((cellValue, cellIndex) => (
+          <CellComponent
+            key={`cell-${rowIndex}-${cellIndex}`}
+            rowIndex={rowIndex}
+            cellIndex={cellIndex}
+            cellValue={cellValue}
+          />
+        ))}
+      </View>
+    ),
+    [TABLE_WIDTH, CellComponent]
+  );
+
+  // Memoized board renderer
+  const BoardComponent = useMemo(
+    () => (
+      <>
+        {board.map((rowData, rowIndex) => (
+          <RowComponent key={`row-${rowIndex}`} rowData={rowData} rowIndex={rowIndex} />
+        ))}
+      </>
+    ),
+    [board, RowComponent]
   );
 
   return (
     <GestureDetector gesture={composed}>
       <Animated.View style={[styles.boardContainer, animatedStyle]}>
-        {table}
+        {BoardComponent}
       </Animated.View>
     </GestureDetector>
   );
@@ -137,8 +167,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  cellBorder: {
+    borderLeftWidth: 1,
+    borderTopWidth: 1,
+  },
   cellText: {
     fontSize: 10,
+    fontWeight: "bold",
   },
   winningCell: {
     backgroundColor: "#d4edda",

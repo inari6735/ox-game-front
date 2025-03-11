@@ -47,7 +47,7 @@ const GameControls = memo(({
         icon="arrow-back"
         iconColor={colors.text}
         iconSize={24}
-        style={{ width: "30%" }}
+        style={styles.sideButton}
         href="/games"
       />
 
@@ -63,7 +63,7 @@ const GameControls = memo(({
         icon="repeat"
         iconColor={colors.text}
         iconSize={24}
-        style={{ width: "30%" }}
+        style={styles.sideButton}
         onPress={onReset}
       />
     </View>
@@ -168,5 +168,8 @@ const styles = StyleSheet.create({
     width: "30%",
     marginRight: "2.5%",
     marginLeft: "2.5%",
+  },
+  sideButton: {
+    width: "30%"
   }
 })

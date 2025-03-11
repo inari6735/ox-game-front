@@ -5,7 +5,6 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
-import { Colors } from "@/constants/Colors"
 import Svg, { Path } from "react-native-svg"
 import { View, Image, Pressable, StyleSheet } from "react-native"
 import MainButton from "@/components/MainButton"
@@ -13,6 +12,7 @@ import { Link } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import ThemedText from "@/components/ThemedText"
 import { memo } from "react"
+import { useTheme } from "@/contexts/ThemeContext"
 
 // Game mode options component
 const GameModeOptions = memo(() => (
@@ -36,7 +36,7 @@ const GameModeOptions = memo(() => (
 ));
 
 // Back button component
-const BackButton = memo(({ bottomInset }: { bottomInset: number }) => (
+const BackButton = memo(({ bottomInset, textColor }: { bottomInset: number, textColor: string }) => (
   <View
     style={[
       styles.backButtonContainer,
@@ -47,7 +47,7 @@ const BackButton = memo(({ bottomInset }: { bottomInset: number }) => (
       <Pressable style={styles.backButton}>
         <Ionicons
           name="arrow-back"
-          color={Colors.main.text}
+          color={textColor}
           size={40}
         />
         <ThemedText style={styles.backButtonText}>Back</ThemedText>
@@ -57,17 +57,19 @@ const BackButton = memo(({ bottomInset }: { bottomInset: number }) => (
 ));
 
 export default function Games() {
-  const { width } = useSafeAreaFrame()
-  const insets = useSafeAreaInsets()
-  const svgCurveHeight = 150
-  const svgHeight = 250
-  const topContainerHeight = svgHeight - insets.top - 100
+  const { width } = useSafeAreaFrame();
+  const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  
+  const svgCurveHeight = 150;
+  const svgHeight = 250;
+  const topContainerHeight = svgHeight - insets.top - 100;
 
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView>
         <SafeAreaView
-          style={styles.container}
+          style={[styles.container, { backgroundColor: colors.background }]}
           className="h-full"
         >
           {/* Curved header background */}
@@ -76,7 +78,7 @@ export default function Games() {
               d={`M0,0 H${width} V${svgCurveHeight} Q${
                 width / 2
               },${svgHeight} 0,${svgCurveHeight} Z`}
-              fill={Colors.main.theme}
+              fill={colors.theme}
             />
           </Svg>
           
@@ -85,7 +87,7 @@ export default function Games() {
             style={[
               styles.logoContainer,
               {
-                width: width,
+                width,
                 height: topContainerHeight,
               }
             ]}
@@ -100,7 +102,10 @@ export default function Games() {
           <GameModeOptions />
           
           {/* Back button */}
-          <BackButton bottomInset={insets.bottom} />
+          <BackButton 
+            bottomInset={insets.bottom} 
+            textColor={colors.text}
+          />
         </SafeAreaView>
       </GestureHandlerRootView>
     </SafeAreaProvider>
@@ -109,7 +114,6 @@ export default function Games() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.main.background,
     display: "flex"
   },
   headerBackground: {
