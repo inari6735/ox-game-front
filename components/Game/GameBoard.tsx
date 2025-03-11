@@ -34,47 +34,32 @@ const GameBoard: FunctionComponent<GameBoardProps> = ({
   const TABLE_WIDTH = width * 0.95;
   const CELL_SIZE = TABLE_WIDTH / BOARD_SIZE;
 
-  // Simplified zoom and pan controls for better performance
-  const scale = useSharedValue(1);
-  const offset = useSharedValue({ x: 0, y: 0 });
-  const start = useSharedValue({ x: 0, y: 0 });
+  const scale = useSharedValue(1)
+  const savedScale = useSharedValue(1)
+  const offset = useSharedValue({ x: 0, y: 0 })
+  const start = useSharedValue({ x: 0, y: 0 })
 
-  // Simple pinch gesture
   const pinchGesture = Gesture.Pinch()
     .onUpdate((e) => {
-      // Limit scale between 0.5 and 2 for better control
-      scale.value = Math.min(Math.max(e.scale, 0.5), 2);
+      scale.value = savedScale.value * e.scale
     })
     .onEnd(() => {
-      // Reset scale to 1 if it's close to 1 for better UX
-      if (scale.value > 0.8 && scale.value < 1.2) {
-        scale.value = 1;
-      }
-    });
+      savedScale.value = scale.value
+    })
 
-  // Simple pan gesture
   const dragGesture = Gesture.Pan()
     .onUpdate((e) => {
       offset.value = {
         x: e.translationX + start.value.x,
         y: e.translationY + start.value.y,
-      };
+      }
     })
     .onEnd(() => {
       start.value = {
         x: offset.value.x,
         y: offset.value.y,
-      };
-    });
-
-  // Double tap to reset
-  const doubleTapGesture = Gesture.Tap()
-    .numberOfTaps(2)
-    .onEnd(() => {
-      scale.value = 1;
-      offset.value = { x: 0, y: 0 };
-      start.value = { x: 0, y: 0 };
-    });
+      }
+    })
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -82,13 +67,9 @@ const GameBoard: FunctionComponent<GameBoardProps> = ({
       { translateX: offset.value.x },
       { translateY: offset.value.y },
     ],
-  }));
+  }))
 
-  // Combine gestures
-  const composed = Gesture.Exclusive(
-    doubleTapGesture,
-    Gesture.Simultaneous(dragGesture, pinchGesture)
-  );
+  const composed = Gesture.Race(dragGesture, pinchGesture)
 
   // Pre-calculate winning cells map for O(1) lookup
   const winningCellsMap = useMemo(() => {
