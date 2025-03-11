@@ -10,7 +10,7 @@ import Svg, { Path } from "react-native-svg"
 import LinkedOptionButton from "@/components/LinkedOptionButton"
 import ActionOptionButton from "@/components/ActionOptionButton"
 import GameBoard from "@/components/Game/GameBoard"
-import { memo, useCallback, useEffect } from "react"
+import { memo, useCallback, useEffect, useRef } from "react"
 import { useGame } from "@/contexts/GameContext"
 import { useTheme } from "@/contexts/ThemeContext"
 import Animated, {
@@ -241,12 +241,14 @@ export default function Game() {
     resetGame();
   }, [resetGame]);
   
+  // Create a ref to store the reset function
+  const resetBoardPositionRef = useRef<() => void>(() => {});
+  
   // Function to reset the board position
   const handleResetBoardPosition = useCallback(() => {
-    // This function will be passed to the GameBoard component
-    // to reset the zoom and position
-    console.log("Reset board position");
-    // The actual implementation will be in the GameBoard component
+    console.log("Reset board position called");
+    // Call the function stored in the ref
+    resetBoardPositionRef.current();
   }, []);
 
   return (
@@ -274,6 +276,9 @@ export default function Game() {
             handleCellSelect={handleCellSelect}
             selectedCell={selectedCell}
             currentPlayerId={currentPlayerId}
+            onResetPosition={(resetFn) => {
+              resetBoardPositionRef.current = resetFn;
+            }}
           />
           
           {/* Game controls */}

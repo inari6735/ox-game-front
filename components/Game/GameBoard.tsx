@@ -1,5 +1,5 @@
 import { Board, BOARD_SIZE } from "@/constants/gameLogic";
-import { FunctionComponent, useMemo } from "react";
+import { FunctionComponent, useMemo, useEffect, useImperativeHandle, forwardRef } from "react";
 import { StyleSheet } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -19,6 +19,7 @@ interface GameBoardProps {
   symbols: Record<number, string>;
   currentPlayerId?: number | null;
   players?: [];
+  onResetPosition?: (resetFn: () => void) => void;
 }
 
 const GameBoard: FunctionComponent<GameBoardProps> = ({
@@ -28,38 +29,55 @@ const GameBoard: FunctionComponent<GameBoardProps> = ({
   handleCellSelect,
   selectedCell,
   currentPlayerId,
+  onResetPosition,
 }) => {
   const { width } = useSafeAreaFrame();
   const { colors } = useTheme();
   const TABLE_WIDTH = width * 0.95;
   const CELL_SIZE = TABLE_WIDTH / BOARD_SIZE;
 
-  const scale = useSharedValue(1)
-  const savedScale = useSharedValue(1)
-  const offset = useSharedValue({ x: 0, y: 0 })
-  const start = useSharedValue({ x: 0, y: 0 })
+  const scale = useSharedValue(1);
+  const savedScale = useSharedValue(1);
+  const offset = useSharedValue({ x: 0, y: 0 });
+  const start = useSharedValue({ x: 0, y: 0 });
+
+  // Function to reset board position
+  const resetPosition = () => {
+    console.log("Resetting board position");
+    scale.value = 1;
+    savedScale.value = 1;
+    offset.value = { x: 0, y: 0 };
+    start.value = { x: 0, y: 0 };
+  };
+  
+  // Register the reset function with the parent component
+  useEffect(() => {
+    if (onResetPosition) {
+      onResetPosition(resetPosition);
+    }
+  }, [onResetPosition]);
 
   const pinchGesture = Gesture.Pinch()
     .onUpdate((e) => {
-      scale.value = savedScale.value * e.scale
+      scale.value = savedScale.value * e.scale;
     })
     .onEnd(() => {
-      savedScale.value = scale.value
-    })
+      savedScale.value = scale.value;
+    });
 
   const dragGesture = Gesture.Pan()
     .onUpdate((e) => {
       offset.value = {
         x: e.translationX + start.value.x,
         y: e.translationY + start.value.y,
-      }
+      };
     })
     .onEnd(() => {
       start.value = {
         x: offset.value.x,
         y: offset.value.y,
-      }
-    })
+      };
+    });
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
