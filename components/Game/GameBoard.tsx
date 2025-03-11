@@ -83,47 +83,65 @@ const GameBoard: FunctionComponent<GameBoardProps> = ({
     return map;
   }, [winResult]);
 
+  // Pre-compute cell press handlers to avoid recreating functions on each render
+  const cellPressHandlers = useMemo(() => {
+    const handlers: Record<string, () => void> = {};
+    
+    for (let i = 0; i < BOARD_SIZE; i++) {
+      for (let j = 0; j < BOARD_SIZE; j++) {
+        const key = `${i}-${j}`;
+        handlers[key] = () => handleCellSelect(i, j);
+      }
+    }
+    
+    return handlers;
+  }, [handleCellSelect]);
+
   // Memoized cell renderer to prevent unnecessary re-renders
   const CellComponent = useCallback(
     ({ rowIndex, cellIndex, cellValue }: { rowIndex: number; cellIndex: number; cellValue: number | null }) => {
-      const isWinningCell = winningCellsMap[`${rowIndex}-${cellIndex}`];
+      const cellKey = `${rowIndex}-${cellIndex}`;
+      const isWinningCell = winningCellsMap[cellKey];
       const isLastRow = rowIndex === BOARD_SIZE - 1;
       const isLastColumn = cellIndex === BOARD_SIZE - 1;
       const isSelected = selectedCell && selectedCell[0] === rowIndex && selectedCell[1] === cellIndex;
       
+      // Compute cell style once to avoid recreating style arrays on each render
+      const cellStyle = [
+        styles.cell,
+        { 
+          borderColor: colors.text,
+          backgroundColor: colors.background,
+          width: CELL_SIZE,
+          height: CELL_SIZE,
+        },
+        styles.cellBorder,
+        isWinningCell && styles.winningCell,
+        isSelected && styles.selectedCell,
+        isLastRow && styles.lastRowCell,
+        isLastColumn && styles.lastColumnCell,
+      ];
+      
       return (
         <TouchableOpacity
-          key={`${rowIndex}-${cellIndex}`}
-          style={[
-            styles.cell,
-            { 
-              borderColor: colors.text,
-              backgroundColor: colors.background,
-              width: CELL_SIZE,
-              height: CELL_SIZE,
-            },
-            styles.cellBorder,
-            isWinningCell && styles.winningCell,
-            isSelected && styles.selectedCell,
-            isLastRow && styles.lastRowCell,
-            isLastColumn && styles.lastColumnCell,
-          ]}
-          onPress={() => handleCellSelect(rowIndex, cellIndex)}
+          key={cellKey}
+          style={cellStyle}
+          onPress={cellPressHandlers[cellKey]}
+          activeOpacity={0.7} // Improve touch feedback
         >
-          {cellValue && (
+          {cellValue ? (
             <ThemedText style={styles.cellText}>
               {symbols[cellValue]}
             </ThemedText>
-          )}
-          {isSelected && !cellValue && (
+          ) : isSelected ? (
             <ThemedText style={[styles.cellText, styles.selectedCellText]}>
               {symbols[currentPlayerId || 1]}
             </ThemedText>
-          )}
+          ) : null}
         </TouchableOpacity>
       );
     },
-    [colors, CELL_SIZE, winningCellsMap, symbols, handleCellSelect, selectedCell, currentPlayerId]
+    [colors, CELL_SIZE, winningCellsMap, symbols, cellPressHandlers, selectedCell, currentPlayerId]
   );
 
   // Memoized row renderer

@@ -14,6 +14,81 @@ import { memo, useCallback } from "react"
 import { useGame } from "@/contexts/GameContext"
 import { useTheme } from "@/contexts/ThemeContext"
 
+// Memoized player info component
+const PlayerInfo = memo(({ currentPlayer, timeLeft }: { currentPlayer: string, timeLeft: number }) => (
+  <View style={styles.playerInfoContainer}>
+    <ThemedText style={styles.playerInfoText}>
+      Player: {currentPlayer} - Time left: {timeLeft}s
+    </ThemedText>
+  </View>
+));
+
+// Memoized confirm button component
+const ConfirmButton = memo(({ 
+  onConfirm, 
+  hasSelection, 
+  colors 
+}: { 
+  onConfirm: () => void, 
+  hasSelection: boolean, 
+  colors: any 
+}) => {
+  // Pre-compute button style to avoid recreating style arrays on each render
+  const buttonStyle = [
+    styles.mainButton, 
+    { backgroundColor: colors.theme },
+    !hasSelection && styles.mainButtonDisabled
+  ];
+  
+  return (
+    <TouchableOpacity
+      onPress={onConfirm}
+      disabled={!hasSelection}
+      style={buttonStyle}
+      activeOpacity={0.7} // Improve touch feedback
+    >
+      <ThemedText style={styles.mainButtonText}>
+        {hasSelection ? "Confirm" : "Select a cell"}
+      </ThemedText>
+    </TouchableOpacity>
+  );
+});
+
+// Memoized options container component
+const OptionsContainer = memo(({ 
+  onReset, 
+  colors 
+}: { 
+  onReset: () => void, 
+  colors: any 
+}) => (
+  <View style={styles.optionsContainer}>
+    <LinkedOptionButton
+      icon="arrow-back"
+      iconColor={colors.text}
+      iconSize={24}
+      style={styles.sideButton}
+      href="/games"
+    />
+
+    <LinkedOptionButton
+      icon="pause"
+      iconColor={colors.text}
+      iconSize={24}
+      style={styles.middleButton}
+      href="/games"
+    />
+
+    <ActionOptionButton
+      icon="repeat"
+      iconColor={colors.text}
+      iconSize={24}
+      style={styles.sideButton}
+      onPress={onReset}
+    />
+  </View>
+));
+
 // Memoized game controls component to prevent unnecessary re-renders
 const GameControls = memo(({ 
   onConfirm, 
@@ -31,49 +106,9 @@ const GameControls = memo(({
   hasSelection: boolean
 }) => (
   <View style={styles.controlsContainer}>
-    <View style={styles.playerInfoContainer}>
-      <ThemedText style={styles.playerInfoText}>
-        Player: {currentPlayer} - Time left: {timeLeft}s
-      </ThemedText>
-    </View>
-    <TouchableOpacity
-      onPress={onConfirm}
-      disabled={!hasSelection}
-      style={[
-        styles.mainButton, 
-        { backgroundColor: colors.theme },
-        !hasSelection && styles.mainButtonDisabled
-      ]}
-    >
-      <ThemedText style={styles.mainButtonText}>
-        {hasSelection ? "Confirm" : "Select a cell"}
-      </ThemedText>
-    </TouchableOpacity>
-    <View style={styles.optionsContainer}>
-      <LinkedOptionButton
-        icon="arrow-back"
-        iconColor={colors.text}
-        iconSize={24}
-        style={styles.sideButton}
-        href="/games"
-      />
-
-      <LinkedOptionButton
-        icon="pause"
-        iconColor={colors.text}
-        iconSize={24}
-        style={styles.middleButton}
-        href="/games"
-      />
-
-      <ActionOptionButton
-        icon="repeat"
-        iconColor={colors.text}
-        iconSize={24}
-        style={styles.sideButton}
-        onPress={onReset}
-      />
-    </View>
+    <PlayerInfo currentPlayer={currentPlayer} timeLeft={timeLeft} />
+    <ConfirmButton onConfirm={onConfirm} hasSelection={hasSelection} colors={colors} />
+    <OptionsContainer onReset={onReset} colors={colors} />
   </View>
 ));
 
